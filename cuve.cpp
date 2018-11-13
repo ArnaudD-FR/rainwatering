@@ -270,7 +270,7 @@ void setup()
 
     refresh_pompes();
 
-    Serial.begin(9600);
+    Serial.begin(57600);
     Serial.println("Enjoy distance sensor: ");
 #ifdef DEBUG_LEVELS
     log_levels();
