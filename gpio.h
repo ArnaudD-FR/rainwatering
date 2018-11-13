@@ -106,9 +106,9 @@
 #define GPC0(...) GPIO(C, 0, ##__VA_ARGS__) // [OUT] DIST_SENSOR_POWER
 #define GPC1(...) GPIO(C, 1, ##__VA_ARGS__) // [OUT] DIST_SENSOR_TRIGGER
 #define GPC2(...) GPIO(C, 2, ##__VA_ARGS__) // [IN]  DIST_SENSOR_ECHO
-#define GPC3(...) GPIO(C, 3, ##__VA_ARGS__) // [OUT] SURPRESSEUR
-#define GPC4(...) GPIO(C, 4, ##__VA_ARGS__) // [OUT] ELECTROVANNE
-#define GPC5(...) GPIO(C, 5, ##__VA_ARGS__) // [OUT] POMPE_TRANSFERT
+#define GPC3(...) GPIO(C, 3, ##__VA_ARGS__) // [OUT] PRESSURE_BOOSTER
+#define GPC4(...) GPIO(C, 4, ##__VA_ARGS__) // [OUT] SOLENOID_VALVE
+#define GPC5(...) GPIO(C, 5, ##__VA_ARGS__) // [OUT] TRANSFERT_PUMP
 #define GPC6(...) GPIO(C, 6, ##__VA_ARGS__) // reserved for reset
 
 #define GPD0(...) GPIO(D, 0, ##__VA_ARGS__) // reserved for UART/USB RX
@@ -130,9 +130,9 @@
 #define TANK_INT_RAIN_LOW       GPD6(TRUE)  // inversed: pull up
 #define TANK_INT_RAIN_HIGH      GPD7(TRUE)  // inversed: pull up
 
-#define SURPRESSEUR             GPC3() // green led
-#define ELECTROVANNE            GPC4() // yellow led
-#define POMPE_TRANSFERT         GPC5() // red led
+#define PRESSURE_BOOSTER        GPC3() // green led
+#define SOLENOID_VALVE          GPC4() // yellow led
+#define TRANSFERT_PUMP          GPC5() // red led
 
 #define ENC28J60_INT            GPD2()
 
