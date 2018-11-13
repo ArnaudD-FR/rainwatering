@@ -23,6 +23,8 @@
 //
 #define _GPIO_PORT(P, I, INV) P
 #define GPIO_PORT(G) _GPIO_PORT G
+#define GPIO_PORT_DIR(G) CAT(DDR, GPIO_PORT(G))
+#define GPIO_PORT_NAME(G) CAT(PORT, GPIO_PORT(G))
 
 
 //
@@ -51,9 +53,9 @@
 
 // internal API to set ON/OFF GPIO, does not take into account INVERSED GPIO
 #define _GPIO_SET_ON(G)                                             \
-    do { CAT(PORT, GPIO_PORT(G)) |= GPIO_BIT(G); } while (1 == 0)
+    do { GPIO_PORT_NAME(G) |= GPIO_BIT(G); } while (1 == 0)
 #define _GPIO_SET_OFF(G)                                            \
-    do { CAT(PORT, GPIO_PORT(G)) &= ~GPIO_BIT(G); } while (1 == 0)
+    do { GPIO_PORT_NAME(G) &= ~GPIO_BIT(G); } while (1 == 0)
 
 // set ON normal GPIO
 #define _GPIO_SET_ON_FALSE(G) _GPIO_SET_ON(G)
