@@ -93,8 +93,8 @@
 
 
 
-#define GPB0(...) GPIO(B, 0, ##__VA_ARGS__) // [IN] ENC28J60 INT
-#define GPB1(...) GPIO(B, 1, ##__VA_ARGS__)
+#define GPB0(...) GPIO(B, 0, ##__VA_ARGS__) // [IN]  Rain counter
+#define GPB1(...) GPIO(B, 1, ##__VA_ARGS__) // [IN]  City counter
 #define GPB2(...) GPIO(B, 2, ##__VA_ARGS__) // reserved for SPI: Slave Select
 #define GPB3(...) GPIO(B, 3, ##__VA_ARGS__) // reserved for SPI: MOSI
 #define GPB4(...) GPIO(B, 4, ##__VA_ARGS__) // reserved for SPI: MISO
@@ -112,7 +112,7 @@
 
 #define GPD0(...) GPIO(D, 0, ##__VA_ARGS__) // reserved for UART/USB RX
 #define GPD1(...) GPIO(D, 1, ##__VA_ARGS__) // reserved for UART/USB TX
-#define GPD2(...) GPIO(D, 2, ##__VA_ARGS__)
+#define GPD2(...) GPIO(D, 2, ##__VA_ARGS__) // [IN]  ENC28J60_INT
 #define GPD3(...) GPIO(D, 3, ##__VA_ARGS__) // [IN]  TANK_EXT_EMPTY
 #define GPD4(...) GPIO(D, 4, ##__VA_ARGS__) // [IN]  TANK_INT_EMPTY
 #define GPD5(...) GPIO(D, 5, ##__VA_ARGS__) // [IN]  TANK_INT_CITY_LOW
@@ -124,7 +124,7 @@
 #define DIST_SENSOR_ECHO        GPC2()
 
 #define TANK_EXT_EMPTY          GPD3(FALSE) // inversed: pull up, logic empty: !!GPD3
-#define TANK_INT_EMPTY          GPD4(FALSE) // inversed: pull up, logic empty: !!GPD4
+#define TANK_INT_EMPTY          GPD4(TRUE)  // inversed: pull up, sensor inversed (0: empty, 1: not empty): !GPD4
 #define TANK_INT_CITY_LOW       GPD5(TRUE)  // inversed: pull up
 #define TANK_INT_RAIN_LOW       GPD6(TRUE)  // inversed: pull up
 #define TANK_INT_RAIN_HIGH      GPD7(TRUE)  // inversed: pull up
@@ -132,6 +132,14 @@
 #define SURPRESSEUR             GPC3() // green led
 #define ELECTROVANNE            GPC4() // yellow led
 #define POMPE_TRANSFERT         GPC5() // red led
+
+#define ENC28J60_INT            GPD2()
+
+// SPI
+#define SPI_SS                  GPB2(TRUE)
+#define SPI_MOSI                GPB3()
+#define SPI_MISO                GPB4()
+#define SPI_SCK                 GPB5()
 
 // #define DEBUG_LEVELS
 
@@ -228,6 +236,8 @@ void setup()
     //
     // intialize I/O
     //
+    // set full PORT B as input. EtherCard will configure SPI pins
+    DDRB = 0;
 
     // DDRC output
     DDRC |= GPIO_BIT(DIST_SENSOR_TRIGGER)
@@ -242,7 +252,8 @@ void setup()
 
     // DDRD input + pull-up
     DDRD &= ~(
-                GPIO_BIT(TANK_EXT_EMPTY)
+                GPIO_BIT(ENC28J60_INT)
+                | GPIO_BIT(TANK_EXT_EMPTY)
                 | GPIO_BIT(TANK_INT_EMPTY)
                 | GPIO_BIT(TANK_INT_CITY_LOW)
                 | GPIO_BIT(TANK_INT_RAIN_LOW)
