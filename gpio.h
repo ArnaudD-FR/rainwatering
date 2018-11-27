@@ -94,31 +94,31 @@
 
 
 
-#define GPB0(...) GPIO(B, 0, ##__VA_ARGS__) // [IN]  Rain counter
-#define GPB1(...) GPIO(B, 1, ##__VA_ARGS__) // [IN]  City counter
-#define GPB2(...) GPIO(B, 2, ##__VA_ARGS__) // reserved for SPI: Slave Select
-#define GPB3(...) GPIO(B, 3, ##__VA_ARGS__) // reserved for SPI: MOSI
-#define GPB4(...) GPIO(B, 4, ##__VA_ARGS__) // reserved for SPI: MISO
-#define GPB5(...) GPIO(B, 5, ##__VA_ARGS__) // reserved for SPI: SCK
+#define GPB0(...) GPIO(B, 0, ##__VA_ARGS__) // [IN]  (D8)  Rain counter
+#define GPB1(...) GPIO(B, 1, ##__VA_ARGS__) // [IN]  (D9)  City counter
+#define GPB2(...) GPIO(B, 2, ##__VA_ARGS__) // [OUT] (D10) SPI: Slave Select
+#define GPB3(...) GPIO(B, 3, ##__VA_ARGS__) // [OUT] (D11) SPI: MOSI
+#define GPB4(...) GPIO(B, 4, ##__VA_ARGS__) // [IN]  (D12) SPI: MISO
+#define GPB5(...) GPIO(B, 5, ##__VA_ARGS__) // [OUT] (D13) SPI: SCK
 #define GPB6(...) GPIO(B, 6, ##__VA_ARGS__) // reserved for XTAL1
 #define GPB7(...) GPIO(B, 7, ##__VA_ARGS__) // reserved for XTAL2
 
-#define GPC0(...) GPIO(C, 0, ##__VA_ARGS__) // [OUT] DIST_SENSOR_POWER
-#define GPC1(...) GPIO(C, 1, ##__VA_ARGS__) // [OUT] DIST_SENSOR_TRIGGER
-#define GPC2(...) GPIO(C, 2, ##__VA_ARGS__) // [IN]  DIST_SENSOR_ECHO
-#define GPC3(...) GPIO(C, 3, ##__VA_ARGS__) // [OUT] PRESSURE_BOOSTER
-#define GPC4(...) GPIO(C, 4, ##__VA_ARGS__) // [OUT] SOLENOID_VALVE
-#define GPC5(...) GPIO(C, 5, ##__VA_ARGS__) // [OUT] TRANSFERT_PUMP
+#define GPC0(...) GPIO(C, 0, ##__VA_ARGS__) // [OUT] (A0)  DIST_SENSOR_POWER
+#define GPC1(...) GPIO(C, 1, ##__VA_ARGS__) // [OUT] (A1)  DIST_SENSOR_TRIGGER
+#define GPC2(...) GPIO(C, 2, ##__VA_ARGS__) // [IN]  (A2)  DIST_SENSOR_ECHO
+#define GPC3(...) GPIO(C, 3, ##__VA_ARGS__) // [OUT] (A3)  PRESSURE_BOOSTER
+#define GPC4(...) GPIO(C, 4, ##__VA_ARGS__) // [OUT] (A4)  SOLENOID_VALVE
+#define GPC5(...) GPIO(C, 5, ##__VA_ARGS__) // [OUT] (A5)  TRANSFERT_PUMP
 #define GPC6(...) GPIO(C, 6, ##__VA_ARGS__) // reserved for reset
 
 #define GPD0(...) GPIO(D, 0, ##__VA_ARGS__) // reserved for UART/USB RX
 #define GPD1(...) GPIO(D, 1, ##__VA_ARGS__) // reserved for UART/USB TX
-#define GPD2(...) GPIO(D, 2, ##__VA_ARGS__) // [IN]  ENC28J60_INT
-#define GPD3(...) GPIO(D, 3, ##__VA_ARGS__) // [IN]  TANK_EXT_EMPTY
-#define GPD4(...) GPIO(D, 4, ##__VA_ARGS__) // [IN]  TANK_INT_EMPTY
-#define GPD5(...) GPIO(D, 5, ##__VA_ARGS__) // [IN]  TANK_INT_CITY_LOW
-#define GPD6(...) GPIO(D, 6, ##__VA_ARGS__) // [IN]  TANK_INT_RAIN_LOW
-#define GPD7(...) GPIO(D, 7, ##__VA_ARGS__) // [IN]  TANK_INT_RAIN_HIGH
+#define GPD2(...) GPIO(D, 2, ##__VA_ARGS__) // [IN]  (D2)  ENC28J60_INT
+#define GPD3(...) GPIO(D, 3, ##__VA_ARGS__) // [IN]  (D3)  TANK_EXT_EMPTY
+#define GPD4(...) GPIO(D, 4, ##__VA_ARGS__) // [IN]  (D4)  TANK_INT_EMPTY
+#define GPD5(...) GPIO(D, 5, ##__VA_ARGS__) // [IN]  (D5)  TANK_INT_CITY_LOW
+#define GPD6(...) GPIO(D, 6, ##__VA_ARGS__) // [IN]  (D6)  TANK_INT_RAIN_LOW
+#define GPD7(...) GPIO(D, 7, ##__VA_ARGS__) // [IN]  (D7)  TANK_INT_RAIN_HIGH
 
 #define DIST_SENSOR_POWER       GPC0()
 #define DIST_SENSOR_TRIGGER     GPC1()
