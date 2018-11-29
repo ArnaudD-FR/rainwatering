@@ -1,10 +1,11 @@
 #include <Arduino.h>
-#include <avr/sleep.h>
 #include <EtherCard.h>
+#include <util/delay.h>
 
 // local includes
 #include "gpio.h"
 #include "level.h"
+#include "lpm.h"
 
 ISR(PCINT1_vect)
 {
@@ -17,21 +18,15 @@ ISR(PCINT2_vect)
 }
 
 
+uint8_t Ethernet::buffer[700]; // configure buffer size to 700 octets
+static uint8_t mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 }; // define (unique on LAN) hardware (MAC) address
+const static uint8_t ip[] = {192,168,1,7};
+const static uint8_t gw[] = {192,168,1,2};
+const static uint8_t dns[] = {192,168,1,4};
 
 void setup()
 {
-    //
-    // intialize I/O
-    //
-    // set full PORT B as input. EtherCard will configure SPI pins
-    DDRB = 0;
-
-
-    // DDRD input
-    DDRD &= ~(
-                GPIO_BIT(ENC28J60_INT)
-            );
-
+    lpm_setup();
     level_setup();
 
     Serial.begin(57600);
@@ -40,24 +35,6 @@ void setup()
 
 void loop()
 {
-
-    {
-    }
-
-
-
-
-#if 0
-    set_sleep_mode(SLEEP_MODE_IDLE);
-    sleep_enable();
-    sei(); // enable interrupts
-
-    sleep_cpu();
-    sleep_disable();
-
-    cli(); // disable interrupts
-#endif
-    level_loop();
 }
 
 int main(void)
@@ -69,6 +46,7 @@ int main(void)
     for (;;) {
         loop();
         if (serialEventRun) serialEventRun();
+        lpm_sleep();
     }
 
     return 0;

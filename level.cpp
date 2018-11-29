@@ -2,6 +2,9 @@
 
 // local includes
 #include "gpio.h"
+#include "lpm.h"
+
+// #define DEBUG_LEVELS
 
 volatile static unsigned long echoStart;
 volatile static unsigned long echoEnd;
@@ -11,8 +14,6 @@ volatile static bool pressureBooster = false;
 volatile static bool solenoidValve = false;
 volatile static bool transfertPump = false;
 #endif
-
-// #define DEBUG_LEVELS
 
 static void level_refresh_pumps();
 
@@ -210,6 +211,8 @@ int level_get_distance()
     int distance = -1;
     GPIO_SET_ON(DIST_SENSOR_POWER);
 
+    timer0_acquire();
+
     // empiric delay to allow distance sensor to start
     delay(30);
 
@@ -221,6 +224,8 @@ int level_get_distance()
     GPIO_SET_OFF(DIST_SENSOR_POWER);
     Serial.print("final distance: ");
     Serial.println(distance);
+
+    timer0_release();
 
     return distance;
 }
