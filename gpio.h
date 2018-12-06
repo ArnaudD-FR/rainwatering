@@ -45,6 +45,14 @@
 //
 #define GPIO_BIT(G) (1 << GPIO_IDX(G))
 
+//
+// Transform GPIO to arduino pin number
+//
+#define _GPIO_ARDUINO_PORT_OFFSET_B 8
+#define _GPIO_ARDUINO_PORT_OFFSET_C 14
+#define _GPIO_ARDUINO_PORT_OFFSET_D 0
+#define GPIO_ARDUINO_PIN(G) (CAT(_GPIO_ARDUINO_PORT_OFFSET_, GPIO_PORT(G)) + GPIO_IDX(G))
+
 
 //
 // turn GPIO ON/OFF
@@ -134,7 +142,7 @@
 #define SOLENOID_VALVE          GPC4() // yellow led
 #define TRANSFERT_PUMP          GPC5() // red led
 
-#define ENC28J60_INT            GPD2()
+#define ENC28J60_INT            GPD2(TRUE) // inversed: interrupted by 0 in hardware
 
 // SPI
 #define SPI_SS                  GPB2(TRUE)
