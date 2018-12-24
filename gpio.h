@@ -1,6 +1,8 @@
 #ifndef _GPIO_H
 #define _GPIO_H
 
+#include <avr/io.h>
+
 #define _CAT(A, B) A ## B
 #define CAT(A, B) _CAT(A, B)
 
@@ -138,9 +140,15 @@
 #define TANK_INT_RAIN_LOW       GPD6(TRUE)  // inversed: pull up
 #define TANK_INT_RAIN_HIGH      GPD7(TRUE)  // inversed: pull up
 
+#ifdef TANK_DEV
 #define PRESSURE_BOOSTER        GPC3() // green led
 #define SOLENOID_VALVE          GPC4() // yellow led
 #define TRANSFERT_PUMP          GPC5() // red led
+#else
+#define PRESSURE_BOOSTER        GPC3(TRUE) // inversed
+#define SOLENOID_VALVE          GPC4(TRUE) // inversed
+#define TRANSFERT_PUMP          GPC5(TRUE) // inversed
+#endif
 
 #define ENC28J60_INT            GPD2(TRUE) // inversed: interrupted by 0 in hardware
 
@@ -149,5 +157,9 @@
 #define SPI_MOSI                GPB3()
 #define SPI_MISO                GPB4()
 #define SPI_SCK                 GPB5()
+
+// counters
+#define COUNTER_RAIN            GPB0()
+#define COUNTER_CITY            GPB1()
 
 #endif // _GPIO_H

@@ -4,4 +4,10 @@ BOARD_TAG = nano328
 ARDUINO_LIBS = EtherCard
 USER_LIB_PATH = libraries
 
+ifeq ($(DEV),Y)
+	CFLAGS+=-DTANK_DEV
+	CXXFLAGS+=-DTANK_DEV
+	BOARD_SUB+=dev
+endif
+
 include /usr/share/arduino/Arduino.mk

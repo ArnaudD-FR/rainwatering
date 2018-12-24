@@ -1,70 +1,25 @@
 #include <Arduino.h>
 
 // local includes
+#include "counters.h"
 #include "gpio.h"
+#include "interrupt.h"
 #include "lpm.h"
-
-// #define DEBUG_LEVELS
 
 volatile static unsigned long echoStart;
 volatile static unsigned long echoEnd;
 
-volatile static bool pressureBooster = false;
-#ifdef DEBUG_LEVELS
-volatile static bool solenoidValve = false;
-volatile static bool transfertPump = false;
-#endif
-
 static void level_refresh_pumps();
 
-#ifdef DEBUG_LEVELS
-static void log_levels()
+void level_sensor_echo_isr()
 {
-    cli(); // disable interrupts
-
-    const bool _pressureBooster = pressureBooster;
-    const bool _solenoidValve = solenoidValve;
-    const bool _transfertPump = transfertPump;
-    const uint8_t _portC = PORTC;
-    const uint8_t _pinC = PINC;
-    const uint8_t _portD = PORTD;
-    const uint8_t _pinD = PIND;
-    const bool tankExtEmpty = GPIO_GET_IN(TANK_EXT_EMPTY);
-    const bool tankIntEmpty = GPIO_GET_IN(TANK_INT_EMPTY);
-    const bool cityLow = GPIO_GET_IN(TANK_INT_CITY_LOW);
-    const bool rainLow = GPIO_GET_IN(TANK_INT_RAIN_LOW);
-    const bool rainHigh = GPIO_GET_IN(TANK_INT_RAIN_HIGH);
-
-    sei(); // enable interrupts
-
-    Serial.print("pressureBooster: ");
-    Serial.print(_pressureBooster);
-    Serial.print("; solenoid valve: ");
-    Serial.print(_solenoidValve);
-    Serial.print("; transfert pump: ");
-    Serial.println(_transfertPump);
-
-    Serial.print("C: out = ");
-    Serial.print(_portC, BIN);
-    Serial.print("; in = ");
-    Serial.print(_pinC, BIN);
-    Serial.print("; D: out = ");
-    Serial.print(_portD, BIN);
-    Serial.print("; in = ");
-    Serial.println(_pinD, BIN);
-
-    Serial.print("\ttankExtEmpty: ");
-    Serial.println(tankExtEmpty);
-    Serial.print("\ttankIntEmpty: ");
-    Serial.println(tankIntEmpty);
-    Serial.print("\tcity low: ");
-    Serial.println(cityLow);
-    Serial.print("\train low: ");
-    Serial.println(rainLow);
-    Serial.print("\train high: ");
-    Serial.println(rainHigh);
+    (!echoStart ? echoStart : echoEnd) = micros();
 }
-#endif
+
+void level_switch_dsr(uint8_t count)
+{
+    level_refresh_pumps();
+}
 
 void level_setup()
 {
@@ -80,15 +35,15 @@ void level_setup()
     PORTC |= GPIO_BIT(DIST_SENSOR_ECHO);
 
     // DDRD input + pull-up
-    DDRD &= ~(
-                GPIO_BIT(TANK_EXT_EMPTY)
+    DDRD &= ~(0
+                | GPIO_BIT(TANK_EXT_EMPTY)
                 | GPIO_BIT(TANK_INT_EMPTY)
                 | GPIO_BIT(TANK_INT_CITY_LOW)
                 | GPIO_BIT(TANK_INT_RAIN_LOW)
                 | GPIO_BIT(TANK_INT_RAIN_HIGH)
             );
-    PORTD |=
-            GPIO_BIT(TANK_EXT_EMPTY)
+    PORTD |= 0
+            | GPIO_BIT(TANK_EXT_EMPTY)
             | GPIO_BIT(TANK_INT_EMPTY)
             | GPIO_BIT(TANK_INT_CITY_LOW)
             | GPIO_BIT(TANK_INT_RAIN_LOW)
@@ -101,54 +56,47 @@ void level_setup()
     // enable interrupts for input pins
     PCICR |= (1 << PCIE1) | (1 << PCIE2);
     PCMSK1 |= GPIO_BIT(DIST_SENSOR_ECHO);
-    PCMSK2 |= GPIO_BIT(TANK_EXT_EMPTY)
+    PCMSK2 = PCMSK2
+            | GPIO_BIT(TANK_EXT_EMPTY)
             | GPIO_BIT(TANK_INT_EMPTY)
             | GPIO_BIT(TANK_INT_CITY_LOW)
             | GPIO_BIT(TANK_INT_RAIN_LOW)
             | GPIO_BIT(TANK_INT_RAIN_HIGH);
 
-    level_refresh_pumps();
-}
+    INT_REGISTER_ISR(DIST_SENSOR_ECHO, INT_CHANGE, level_sensor_echo_isr);
+    INT_REGISTER_DSR(TANK_EXT_EMPTY, INT_CHANGE, level_switch_dsr);
+    INT_REGISTER_DSR(TANK_INT_EMPTY, INT_CHANGE, level_switch_dsr);
+    INT_REGISTER_DSR(TANK_INT_CITY_LOW, INT_CHANGE, level_switch_dsr);
+    INT_REGISTER_DSR(TANK_INT_RAIN_LOW, INT_CHANGE, level_switch_dsr);
+    INT_REGISTER_DSR(TANK_INT_RAIN_HIGH, INT_CHANGE, level_switch_dsr);
 
-void level_PCINT1()
-{
-    static uint8_t previous = 0;
-
-    if ((previous & GPIO_BIT(DIST_SENSOR_ECHO)) != (PINC & GPIO_BIT(DIST_SENSOR_ECHO)))
-        (PINC & GPIO_BIT(DIST_SENSOR_ECHO) ? echoStart : echoEnd) = micros();
-
-    previous = PINC;
-}
-
-void level_PCINT2()
-{
     level_refresh_pumps();
 }
 
 static void level_refresh_pumps()
 {
-    // pressureBooster is ON if internal tank is not empty
-    const bool _pressureBooster = !GPIO_GET_IN(TANK_INT_EMPTY);
+    // pressureBooster is switch ON while internal tank is NOT empty or CITY_LOW is ON
+    const bool pressureBoosterOff =
+        (GPIO_GET_OUT(PRESSURE_BOOSTER) && GPIO_GET_IN(TANK_INT_EMPTY)) // switch ON while !TANK_INT_EMPTY
+        || (!GPIO_GET_OUT(PRESSURE_BOOSTER) && !GPIO_GET_IN(TANK_INT_CITY_LOW)); // or CITY_LOW is ON
 
     // electrovanne is switch to ON if CITY_LOW is OFF while RAIN_LOW is OFF
-    const bool _solenoidValve
-        = (!GPIO_GET_OUT(SOLENOID_VALVE) && !GPIO_GET_IN(TANK_INT_CITY_LOW)) // switch ON when !CITY_LOW && !SOLENOID_VALVE
+    const bool solenoidValve =
+        (!GPIO_GET_OUT(SOLENOID_VALVE) && !GPIO_GET_IN(TANK_INT_CITY_LOW)) // switch ON when !CITY_LOW && !SOLENOID_VALVE
         || (GPIO_GET_OUT(SOLENOID_VALVE) && !GPIO_GET_IN(TANK_INT_RAIN_LOW)); // until RAIN_LOW && SOLENOID_VALVE
 
     // transfertPump pump is ON if RAIN_LOW if OFF while RAIN_HIGH is OFF and there is watter in external tank
-    const bool _transfertPump = !GPIO_GET_IN(TANK_EXT_EMPTY) && (
+    const bool transfertPump = !GPIO_GET_IN(TANK_EXT_EMPTY) && (
             (!GPIO_GET_OUT(TRANSFERT_PUMP) && !GPIO_GET_IN(TANK_INT_RAIN_LOW))
             || (GPIO_GET_OUT(TRANSFERT_PUMP) && !GPIO_GET_IN(TANK_INT_RAIN_HIGH))
         );
-    GPIO_SET(PRESSURE_BOOSTER, _pressureBooster);
-    GPIO_SET(SOLENOID_VALVE, _solenoidValve);
-    GPIO_SET(TRANSFERT_PUMP, _transfertPump);
 
-    pressureBooster = _pressureBooster;
-#ifdef DEBUG_LEVELS
-    solenoidValve = _solenoidValve;
-    transfertPump = _transfertPump;
-#endif
+    if ((GPIO_GET_OUT(SOLENOID_VALVE) && !solenoidValve) || (GPIO_GET_OUT(TRANSFERT_PUMP) && !transfertPump))
+        counters_commit();
+
+    GPIO_SET(PRESSURE_BOOSTER, !pressureBoosterOff);
+    GPIO_SET(SOLENOID_VALVE, solenoidValve);
+    GPIO_SET(TRANSFERT_PUMP, transfertPump);
 }
 
 static int level_get_distance_()
@@ -222,17 +170,9 @@ int level_get_distance()
         distance = max(distance, level_get_distance_());
 
     GPIO_SET_OFF(DIST_SENSOR_POWER);
-    Serial.print("final distance: ");
-    Serial.println(distance);
 
     timer0_release();
 
     return distance;
 }
 
-void level_loop()
-{
-#ifdef DEBUG_LEVELS
-    log_levels();
-#endif
-}
