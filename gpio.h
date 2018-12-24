@@ -130,36 +130,4 @@
 #define GPD6(...) GPIO(D, 6, ##__VA_ARGS__) // [IN]  (D6)  TANK_INT_RAIN_LOW
 #define GPD7(...) GPIO(D, 7, ##__VA_ARGS__) // [IN]  (D7)  TANK_INT_RAIN_HIGH
 
-#define DIST_SENSOR_POWER       GPC0()
-#define DIST_SENSOR_TRIGGER     GPC1()
-#define DIST_SENSOR_ECHO        GPC2()
-
-#define TANK_EXT_EMPTY          GPD3(FALSE) // inversed: pull up, logic empty: !!GPD3
-#define TANK_INT_EMPTY          GPD4(TRUE)  // inversed: pull up, sensor inversed (0: empty, 1: not empty): !GPD4
-#define TANK_INT_CITY_LOW       GPD5(TRUE)  // inversed: pull up
-#define TANK_INT_RAIN_LOW       GPD6(TRUE)  // inversed: pull up
-#define TANK_INT_RAIN_HIGH      GPD7(TRUE)  // inversed: pull up
-
-#ifdef TANK_DEV
-#define PRESSURE_BOOSTER        GPC3() // green led
-#define SOLENOID_VALVE          GPC4() // yellow led
-#define TRANSFERT_PUMP          GPC5() // red led
-#else
-#define PRESSURE_BOOSTER        GPC3(TRUE) // inversed
-#define SOLENOID_VALVE          GPC4(TRUE) // inversed
-#define TRANSFERT_PUMP          GPC5(TRUE) // inversed
-#endif
-
-#define ENC28J60_INT            GPD2(TRUE) // inversed: interrupted by 0 in hardware
-
-// SPI
-#define SPI_SS                  GPB2(TRUE)
-#define SPI_MOSI                GPB3()
-#define SPI_MISO                GPB4()
-#define SPI_SCK                 GPB5()
-
-// counters
-#define COUNTER_RAIN            GPB0()
-#define COUNTER_CITY            GPB1()
-
 #endif // _GPIO_H

@@ -5,11 +5,9 @@
 #include <util/atomic.h>
 
 #include "counters.h"
-#include "gpio.h"
+#include "config.h"
 #include "interrupt.h"
 #include "settings.h"
-
-#define PULSE_PER_LITER 495
 
 static SettingsCounters counters;
 
@@ -35,9 +33,9 @@ void counters_log(const char *name, SettingsCounters &c)
     Serial.print("counters(");
     Serial.print(name);
     Serial.print("): rain = ");
-    Serial.print(c.rain/*/PULSE_PER_LITER*/);
+    Serial.print(c.rain/*/COUNTER_PULSE_PER_LITER*/);
     Serial.print("L; city = ");
-    Serial.print(c.city/*/PULSE_PER_LITER*/);
+    Serial.print(c.city/*/COUNTER_PULSE_PER_LITER*/);
     Serial.println("L");
 }
 

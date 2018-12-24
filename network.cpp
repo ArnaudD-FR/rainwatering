@@ -3,20 +3,19 @@
 
 
 #include "coap.h"
-#include "gpio.h"
+#include "config.h"
 #include "level.h"
 #include "lpm.h"
 #include "network.h"
 #include "settings.h"
 
 
-#define COAP_PORT 5683
-uint8_t Ethernet::buffer[700]; // configure buffer size to 700 octets
-static uint8_t mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 }; // define (unique on LAN) hardware (MAC) address
-const static uint8_t ip[] = {192,168,1,7};
-const static uint8_t gw[] = { 192,168,1,2};
-const static uint8_t dns[] = {0,0,0,0};
-const static uint8_t mask[] = {255,255,255,0};
+uint8_t Ethernet::buffer[ETHERNET_BUFFER_SIZE];
+static uint8_t mymac[] = ETHERNET_MAC_ADDR;
+const static uint8_t ip[] = ETHERNET_IP_ADDR;
+const static uint8_t gw[] = ETHERNET_IP_GW;
+const static uint8_t dns[] = ETHERNET_IP_DNS;
+const static uint8_t mask[] = ETHERNET_IP_NET_MASK;
 
 static char *append(char *dest, const char *src, const size_t len)
 {
@@ -174,14 +173,14 @@ void network_setup()
     ether.udpServerListenOnPort(&network_coap_handle, COAP_PORT);
 
     // enable interrupts
-    DDRD &= ~(GPIO_BIT(ENC28J60_INT));
+    DDRD &= ~(GPIO_BIT(ETHERNET_ENC28J60_INT));
     PCICR |= (1 << PCIE2);
-    PCMSK2 |= GPIO_BIT(ENC28J60_INT);
+    PCMSK2 |= GPIO_BIT(ETHERNET_ENC28J60_INT);
 }
 
 void network_loop()
 {
-    while (GPIO_GET_IN(ENC28J60_INT) > 0)
+    while (GPIO_GET_IN(ETHERNET_ENC28J60_INT) > 0)
     {
         timer0_acquire();
         ether.packetLoop(ether.packetReceive());

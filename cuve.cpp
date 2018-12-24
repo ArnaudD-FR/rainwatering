@@ -3,7 +3,7 @@
 
 // local includes
 #include "counters.h"
-#include "gpio.h"
+#include "config.h"
 #include "interrupt.h"
 #include "level.h"
 #include "lpm.h"
