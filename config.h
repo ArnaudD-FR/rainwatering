@@ -3,7 +3,9 @@
 
 #include "gpio.h"
 
+//
 // levels
+//
 #define DIST_SENSOR_POWER       GPC0()
 #define DIST_SENSOR_TRIGGER     GPC1()
 #define DIST_SENSOR_ECHO        GPC2()
@@ -18,18 +20,26 @@
 #define SOLENOID_VALVE          GPC4(TRUE) // inversed
 #define TRANSFERT_PUMP          GPC5(TRUE) // inversed
 
+//
 // SPI
+//
 #define SPI_SS                  GPB2(TRUE)
 #define SPI_MOSI                GPB3()
 #define SPI_MISO                GPB4()
 #define SPI_SCK                 GPB5()
 
+//
 // counters
+//
 #define COUNTER_RAIN            GPB0()
 #define COUNTER_CITY            GPB1()
-#define COUNTER_PULSE_PER_LITER 495
+#define COUNTER_CITY_PULSE_PER_LITER 590
+#define COUNTER_RAIN_PULSE_PER_LITER 573
 
 
+//
+// ethernet
+//
 // configure 700 bytes to receive ethernet
 #define ETHERNET_BUFFER_SIZE    700
 // define (unique on LAN) hardware (MAC) address

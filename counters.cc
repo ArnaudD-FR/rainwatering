@@ -33,9 +33,9 @@ void counters_log(const char *name, SettingsCounters &c)
     Serial.print("counters(");
     Serial.print(name);
     Serial.print("): rain = ");
-    Serial.print(c.rain/*/COUNTER_PULSE_PER_LITER*/);
+    Serial.print(c.rain/COUNTER_RAIN_PULSE_PER_LITER);
     Serial.print("L; city = ");
-    Serial.print(c.city/*/COUNTER_PULSE_PER_LITER*/);
+    Serial.print(c.city/COUNTER_CITY_PULSE_PER_LITER);
     Serial.println("L");
 }
 

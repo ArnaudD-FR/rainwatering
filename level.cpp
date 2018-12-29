@@ -23,6 +23,10 @@ void level_switch_dsr(uint8_t count)
 
 void level_setup()
 {
+    GPIO_SET_OFF(PRESSURE_BOOSTER);
+    GPIO_SET_OFF(SOLENOID_VALVE);
+    GPIO_SET_OFF(TRANSFERT_PUMP);
+
     // DDRC output
     DDRC |= GPIO_BIT(DIST_SENSOR_TRIGGER)
             | GPIO_BIT(DIST_SENSOR_POWER)
@@ -73,6 +77,39 @@ void level_setup()
     level_refresh_pumps();
 }
 
+// #define PURGE
+// #define CALIBRATE_CITY
+// #define CALIBRATE_RAIN
+
+#ifdef PURGE
+static void level_refresh_pumps()
+{
+    // pressureBooster is switch OFF if RAIN_LOW is OFF while RAIN_HIGH
+    const bool ps = GPIO_GET_OUT(PRESSURE_BOOSTER) && !GPIO_GET_IN(TANK_INT_RAIN_LOW) || !GPIO_GET_OUT(PRESSURE_BOOSTER) && !GPIO_GET_IN(TANK_INT_RAIN_HIGH);
+            // (!GPIO_GET_OUT(PRESSURE_BOOSTER) && !GPIO_GET_IN(TANK_INT_RAIN_LOW))
+            // || (GPIO_GET_OUT(PRESSURE_BOOSTER) && !GPIO_GET_IN(TANK_INT_RAIN_HIGH));
+            //
+    GPIO_SET(PRESSURE_BOOSTER, !ps);
+}
+#elif defined CALIBRATE_CITY
+static void level_refresh_pumps()
+{
+    const bool before = GPIO_GET_OUT(SOLENOID_VALVE);
+    const bool transfertPump = (!before && !GPIO_GET_IN(TANK_INT_RAIN_LOW))
+            || (before && !GPIO_GET_IN(TANK_INT_RAIN_HIGH));
+
+    GPIO_SET(SOLENOID_VALVE, transfertPump);
+}
+#elif defined CALIBRATE_RAIN
+static void level_refresh_pumps()
+{
+    const bool before = GPIO_GET_OUT(TRANSFERT_PUMP);
+    const bool transfertPump = (!before && !GPIO_GET_IN(TANK_INT_RAIN_LOW))
+            || (before && !GPIO_GET_IN(TANK_INT_RAIN_HIGH));
+
+    GPIO_SET(TRANSFERT_PUMP, transfertPump);
+}
+#else
 static void level_refresh_pumps()
 {
     // pressureBooster is switch ON while internal tank is NOT empty or CITY_LOW is ON
@@ -98,6 +135,7 @@ static void level_refresh_pumps()
     GPIO_SET(SOLENOID_VALVE, solenoidValve);
     GPIO_SET(TRANSFERT_PUMP, transfertPump);
 }
+#endif
 
 static int level_get_distance_()
 {
