@@ -4,6 +4,7 @@
 
 #include "coap.h"
 #include "config.h"
+#include "counters.h"
 #include "interrupt.h"
 #include "level.h"
 #include "lpm.h"
@@ -17,6 +18,7 @@ const static uint8_t ip[] = ETHERNET_IP_ADDR;
 const static uint8_t gw[] = ETHERNET_IP_GW;
 const static uint8_t dns[] = ETHERNET_IP_DNS;
 const static uint8_t mask[] = ETHERNET_IP_NET_MASK;
+static char json[64];
 
 static char *append(char *dest, const char *src, const size_t len)
 {
@@ -54,6 +56,36 @@ struct AppendStr<int>
 };
 
 template <>
+struct AppendStr<unsigned int>
+{
+    static char *append(char *dest, const int src)
+    {
+        utoa(src, dest, 10);
+        return dest + strlen(dest);
+    }
+};
+
+template <>
+struct AppendStr<long>
+{
+    static char *append(char *dest, const long src)
+    {
+        ltoa(src, dest, 10);
+        return dest + strlen(dest);
+    }
+};
+
+template <>
+struct AppendStr<unsigned long>
+{
+    static char *append(char *dest, const long src)
+    {
+        ultoa(src, dest, 10);
+        return dest + strlen(dest);
+    }
+};
+
+template <>
 struct AppendStr<bool>
     : public AppendStr<int>
 {
@@ -73,7 +105,6 @@ static int network_coap_handle_levels_ext(
     static const char percentStr[] = ",percent:";
     static const char remainCapacityStr[] = ",remains:";
     static const char endStr[] = "}";
-    static char json[64];
     char *iter = json;
 
     LevelTankExt l;
@@ -122,9 +153,51 @@ static int network_coap_handle_levels_ext(
         );
 }
 
+static const coap_endpoint_path_t network_coap_path_counters = { 1, { "counters" } };
+static int network_coap_handle_counters(
+        coap_rw_buffer_t *scratch,
+        const coap_packet_t *inpkt,
+        coap_packet_t *outpkt,
+        uint8_t id_hi,
+        uint8_t id_lo
+    )
+{
+    static const char rainStr[] = "{rain:";
+    static const char cityStr[] = ",city:";
+    static const char endStr[] = "}";
+    char *iter = json;
+
+    SettingsCounters c;
+    counters_get(c);
+
+    // json = "{rain:900000,city:200000}";
+    iter = append(iter, rainStr);
+    iter = append(iter, c.rain/COUNTER_RAIN_PULSE_PER_LITER);
+    iter = append(iter, cityStr);
+    iter = append(iter, c.city/COUNTER_CITY_PULSE_PER_LITER);
+    iter = append(iter, endStr);
+    ++iter;
+
+    Serial.print("json:");
+    Serial.println(json);
+
+    return coap_make_response(
+            scratch,
+            outpkt,
+            (const uint8_t *)json,
+            iter - json,
+            id_hi,
+            id_lo,
+            &inpkt->tok,
+            COAP_RSPCODE_CONTENT,
+            COAP_CONTENTTYPE_APPLICATION_JSON
+        );
+}
+
 const coap_endpoint_t endpoints[] =
 {
     { COAP_METHOD_GET, network_coap_handle_levels_ext, &network_coap_path_levels_ext, "ct=50"},
+    { COAP_METHOD_GET, network_coap_handle_counters, &network_coap_path_counters, "ct=50"},
     {(coap_method_t)0, NULL, NULL, NULL}
 };
 
@@ -161,7 +234,6 @@ static void network_coap_handle(
     static uint8_t scratch_raw[32];
     static coap_rw_buffer_t scratch_buf = {scratch_raw, sizeof(scratch_raw)};
     coap_handle_req(&scratch_buf, &pkt, &rsppkt);
-
     if ((rc = coap_build(rsp, &rsplen, &rsppkt)) != 0)
     {
         Serial.print("coap_build failed rc=");
