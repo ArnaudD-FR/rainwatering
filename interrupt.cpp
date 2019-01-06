@@ -39,6 +39,9 @@ typedef void (*InterruptCbk)();
 static InterruptCbk interrupt_cbk_arr[3 * 8] = {};
 static uint8_t interrupt_flags[3 * INT_FLAGS_SIZE];
 static volatile uint8_t interrupt_dsr_counter[3 * 8];
+static volatile uint8_t previousB;
+static volatile uint8_t previousC;
+static volatile uint8_t previousD;
 
 static void interrupt_register(const uint8_t arduinoPin, const uint8_t flags, const InterruptCbk cbk)
 {
@@ -88,7 +91,14 @@ void interrupt_loop()
     }
 }
 
-static void interrupt_isr(const uint8_t offset, uint8_t &previous, const uint8_t current)
+void interrupt_setup()
+{
+    previousB = PINB;
+    previousC = PINC;
+    previousD = PIND;
+}
+
+static void interrupt_isr(const uint8_t offset, const uint8_t previous, const uint8_t current)
 {
     int idx = 0;
     for (InterruptCbk *iter = interrupt_cbk_arr + offset,
@@ -150,26 +160,28 @@ static void interrupt_isr(const uint8_t offset, uint8_t &previous, const uint8_t
             }
         }
     }
-    previous = current;
 }
 
 #ifndef TEST
 ISR(PCINT0_vect)
 {
-    static uint8_t previous = 0;
-    interrupt_isr(_GPIO_ARDUINO_PORT_OFFSET_B, previous, PINB);
+    const uint8_t current = PINB;
+    interrupt_isr(_GPIO_ARDUINO_PORT_OFFSET_B, previousB, current);
+    previousB = current;
 }
 
 ISR(PCINT1_vect)
 {
-    static uint8_t previous = 0;
-    interrupt_isr(_GPIO_ARDUINO_PORT_OFFSET_C, previous, PINC);
+    const uint8_t current = PINC;
+    interrupt_isr(_GPIO_ARDUINO_PORT_OFFSET_C, previousC, current);
+    previousC = current;
 }
 
 ISR(PCINT2_vect)
 {
-    static uint8_t previous = 0;
-    interrupt_isr(_GPIO_ARDUINO_PORT_OFFSET_D, previous, PIND);
+    const uint8_t current = PIND;
+    interrupt_isr(_GPIO_ARDUINO_PORT_OFFSET_D, previousD, current);
+    previousD = current;
 }
 #else
 

@@ -13,7 +13,7 @@ void setup()
 {
     Serial.begin(57600);
 
-    // timer0_acquire();
+    interrupt_setup();
     lpm_setup();
     counters_setup();
     level_setup();
