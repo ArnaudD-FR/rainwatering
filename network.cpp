@@ -4,6 +4,7 @@
 
 #include "coap.h"
 #include "config.h"
+#include "interrupt.h"
 #include "level.h"
 #include "lpm.h"
 #include "network.h"
@@ -52,6 +53,12 @@ struct AppendStr<int>
     }
 };
 
+template <>
+struct AppendStr<bool>
+    : public AppendStr<int>
+{
+};
+
 static const coap_endpoint_path_t network_coap_path_levels_ext = { 2, { "levels", "ext" } };
 static int network_coap_handle_levels_ext(
         coap_rw_buffer_t *scratch,
@@ -61,33 +68,42 @@ static int network_coap_handle_levels_ext(
         uint8_t id_lo
     )
 {
-    static const char minstr[] = "{min:";
-    static const char maxstr[] = ",max:";
-    static const char currentstr[] = ",current:";
-    static const char percentstr[] = ",percent:";
-    static const char literstr[] = ",liter:";
-    static const char endstr[] = "}";
-
-    SettingsLevels levels;
-    settings_load(levels);
-
+    static const char emptyStr[] = "{empty:";
+    static const char measStr[] = ",meas:";
+    static const char percentStr[] = ",percent:";
+    static const char remainCapacityStr[] = ",remains:";
+    static const char endStr[] = "}";
     static char json[64];
     char *iter = json;
-    const int distance = level_get_distance();
-    const int percent = ((distance - levels.max)/(levels.min - levels.max))*100;
-    const int liter = 6000/100*percent;
-    // json = "{min:123,max:123,current=123,percent:100,liter:11}";
-    iter = append(iter, minstr);
-    iter = append(iter, (int)levels.min);
-    iter = append(iter, maxstr);
-    iter = append(iter, (int)levels.max);
-    iter = append(iter, currentstr);
-    iter = append(iter, distance);
-    iter = append(iter, percentstr);
-    iter = append(iter, percent);
-    iter = append(iter, literstr);
-    iter = append(iter, liter);
-    iter = append(iter, endstr);
+
+    LevelTankExt l;
+    if (!level_get_tank_ext(l))
+    {
+        return coap_make_response(
+                scratch,
+                outpkt,
+                NULL,
+                0,
+                id_hi,
+                id_lo,
+                &inpkt->tok,
+                COAP_RSPCODE_INT_SRV_ERR,
+                COAP_CONTENTTYPE_NONE
+            );
+    }
+
+
+
+    // json = "{empty:0,meas=170,percent:100,liter:6000}";
+    iter = append(iter, emptyStr);
+    iter = append(iter, l.empty);
+    iter = append(iter, measStr);
+    iter = append(iter, l.meas);
+    iter = append(iter, percentStr);
+    iter = append(iter, l.percent);
+    iter = append(iter, remainCapacityStr);
+    iter = append(iter, l.capacity);
+    iter = append(iter, endStr);
     ++iter;
 
     Serial.print("json:");
@@ -129,6 +145,7 @@ static void network_coap_handle(
     // Serial.println("\ndata: ");
     // Serial.println(data);
     // ether.sendUdp(data, len, dest_port, src_ip, src_port);
+    // return;
     int rc;
     coap_packet_t pkt;
     if ((rc = coap_parse(&pkt, (const uint8_t *)data, len)) != 0)
@@ -154,6 +171,16 @@ static void network_coap_handle(
     ether.sendUdp((const char *)rsp, rsplen, dest_port, src_ip, src_port);
 }
 
+void network_dsr(uint8_t)
+{
+    while (GPIO_GET_IN(ETHERNET_ENC28J60_INT) > 0)
+    {
+        timer0_acquire();
+        ether.packetLoop(ether.packetReceive());
+        timer0_release();
+    }
+}
+
 void network_setup()
 {
     coap_setup();
@@ -176,15 +203,7 @@ void network_setup()
     DDRD &= ~(GPIO_BIT(ETHERNET_ENC28J60_INT));
     PCICR |= (1 << PCIE2);
     PCMSK2 |= GPIO_BIT(ETHERNET_ENC28J60_INT);
-}
 
-void network_loop()
-{
-    while (GPIO_GET_IN(ETHERNET_ENC28J60_INT) > 0)
-    {
-        timer0_acquire();
-        ether.packetLoop(ether.packetReceive());
-        timer0_release();
-    }
+    INT_REGISTER_DSR(ETHERNET_ENC28J60_INT, INT_RISING, network_dsr);
 }
 

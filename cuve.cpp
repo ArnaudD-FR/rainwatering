@@ -17,7 +17,7 @@ void setup()
     lpm_setup();
     counters_setup();
     level_setup();
-    // network_setup();
+    network_setup();
 
     Serial.println("Enjoy distance sensor: ");
 }

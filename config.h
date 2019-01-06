@@ -43,8 +43,8 @@
 //
 // ethernet
 //
-// configure 700 bytes to receive ethernet
-#define ETHERNET_BUFFER_SIZE    700
+// configure ethernet buffer size
+#define ETHERNET_BUFFER_SIZE    400
 // define (unique on LAN) hardware (MAC) address
 #define ETHERNET_MAC_ADDR       {0x74,0x69,0x69,0x2D,0x30,0x31}
 #define ETHERNET_IP_ADDR        {192,168,1,7}
