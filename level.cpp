@@ -1,10 +1,12 @@
 #include <Arduino.h>
+#include <math.h>
 
 // local includes
 #include "counters.h"
 #include "config.h"
 #include "interrupt.h"
 #include "lpm.h"
+#include "level.h"
 
 volatile static unsigned long echoStart;
 volatile static unsigned long echoEnd;
@@ -16,7 +18,7 @@ void level_sensor_echo_isr()
     (!echoStart ? echoStart : echoEnd) = micros();
 }
 
-void level_switch_dsr(uint8_t count)
+void level_switch_dsr(uint8_t)
 {
     level_refresh_pumps();
 }
@@ -214,3 +216,55 @@ int level_get_distance()
     return distance;
 }
 
+bool level_get_tank_ext(LevelTankExt &l)
+{
+    // simplified area of the external tank:
+    //  - half pipe on the top (R ~= 0.85m)
+    //  - isoceles trapezoid at the bottom (top: ~1.70; bottom: ~1.10)
+    //   \             /
+    //    \           /
+    //     \_________/
+    //
+    // half pipe area:
+    // see http://villemin.gerard.free.fr/GeomLAV/Cercle/aaaAIRE/Segment.htm
+    // area is equal to R^2 * acos(h/R) - h*sqrt(R^2 - h^2)
+    // with h = 2R - MesuredDistance
+    const int H = 170; // cm
+    const int R = 85; // cm
+    const int trapezoidTop = 170; // cm
+    const int trapezoidBottom = 110; // cm
+    const int trapezoidHeight = 85; // cm
+    const double fullArea = // cm^2
+        M_PI_2 * R * R // half pipe
+        + (trapezoidBottom + (trapezoidTop - trapezoidBottom)/2) * trapezoidHeight; // isoceles trapezoid
+
+    int meas = level_get_distance();
+    if (meas < 0)
+        return false;
+
+    meas -= TANK_EXT_DIST_MIN;
+    if (meas < 0)
+        meas = 0;
+    else if (meas > H)
+        meas = H;
+    double measArea = 0.0;
+    if (meas < R)
+    {
+        // something in half pipe
+        const int h = R - meas;
+        measArea += R*R * acos(h/R) - h*sqrt(R*R - h*h);
+    }
+
+    const int measTrapezoidHeight = min(trapezoidHeight, H - meas);
+    const int measTrapezoidTop = trapezoidBottom + (measTrapezoidHeight / trapezoidHeight)*(trapezoidTop - trapezoidBottom);
+    measArea += (trapezoidBottom + (measTrapezoidTop - trapezoidBottom)/2) * measTrapezoidHeight;
+
+    const double percent = 100*measArea/fullArea;
+
+    l.empty = GPIO_GET_IN(TANK_EXT_EMPTY);
+    l.meas = H-meas;
+    l.percent = (int)percent;
+    l.capacity = TANK_EXT_CAPACITY/100*percent;
+
+    return true;
+}

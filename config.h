@@ -20,6 +20,9 @@
 #define SOLENOID_VALVE          GPC4(TRUE) // inversed
 #define TRANSFERT_PUMP          GPC5(TRUE) // inversed
 
+#define TANK_EXT_CAPACITY       6000 // external tank capacity is 6000L
+#define TANK_EXT_DIST_MIN       26 // distance between sensor and water when tank is full
+
 //
 // SPI
 //
