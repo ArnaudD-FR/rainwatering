@@ -231,13 +231,12 @@ bool level_get_tank_ext(LevelTankExt &l)
     // with h = 2R - MesuredDistance
     const int H = 170; // cm
     const int R = 85; // cm
-    const int trapezoidTop = 170; // cm
+    const int trapezoidTop = 2 * R; // cm
     const int trapezoidBottom = 110; // cm
-    const int trapezoidHeight = 85; // cm
-    const double fullArea = // cm^2
-        M_PI_2 * R * R // half pipe
-        + (trapezoidBottom + (trapezoidTop - trapezoidBottom)/2) * trapezoidHeight; // isoceles trapezoid
-
+    const int trapezoidHeight = H - R; // cm
+    const double halfPipeFullArea = M_PI_2 * R * R;
+    const double trapezoidFullArea = (trapezoidBottom + (trapezoidTop - trapezoidBottom)/2) * trapezoidHeight; // isoceles trapezoid
+    const double fullArea = halfPipeFullArea + trapezoidFullArea;
     int meas = level_get_distance();
     if (meas < 0)
         return false;
@@ -252,7 +251,7 @@ bool level_get_tank_ext(LevelTankExt &l)
     {
         // something in half pipe
         const int h = R - meas;
-        measArea += R*R * acos(h/R) - h*sqrt(R*R - h*h);
+        measArea += halfPipeFullArea - (R*R * acos(((double)h)/R) - h*sqrt(R*R - h*h));
     }
 
     const int measTrapezoidHeight = min(trapezoidHeight, H - meas);
