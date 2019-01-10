@@ -2,6 +2,7 @@
 #include <wiring_private.h>
 
 // avr includes
+#include <avr/power.h>
 #include <avr/sleep.h>
 #include <util/atomic.h>
 
@@ -13,7 +14,10 @@ static volatile uint8_t _lpmLockCount = 0;
 void timer0_acquire()
 {
     if (!_timer0Counter)
-        cbi(PRR, PRTIM0);
+    {
+        power_timer0_enable();
+        sbi(TIMSK0, TOIE0);
+    }
     ++_timer0Counter;
 }
 
@@ -24,7 +28,10 @@ void timer0_release()
 
     --_timer0Counter;
     if (!_timer0Counter)
-        sbi(PRR, PRTIM0);
+    {
+        cbi(TIMSK0, TOIE0);
+        power_timer0_disable();
+    }
 }
 
 void lpm_lock_acquire()
