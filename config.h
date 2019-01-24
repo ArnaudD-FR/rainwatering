@@ -16,7 +16,7 @@
 #define TANK_INT_RAIN_LOW       GPD6(TRUE)  // inversed: pull up
 #define TANK_INT_RAIN_HIGH      GPD7(TRUE)  // inversed: pull up
 
-#define PRESSURE_BOOSTER        GPC3(TRUE) // inversed
+#define PRESSURE_BOOSTER        GPC3(FALSE) // normal: relay command inversed, relay output inversed
 #define SOLENOID_VALVE          GPC4(TRUE) // inversed
 #define TRANSFERT_PUMP          GPC5(TRUE) // inversed
 
