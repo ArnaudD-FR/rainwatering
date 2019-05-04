@@ -1,0 +1,58 @@
+v 20130925 2
+T 1200 1200 8 10 1 1 0 6 1
+refdes=CONN_DC_DC_5_3.3
+T 300 1150 5 10 0 0 0 0 1
+device=CONNECTOR_4
+T 300 1350 5 10 0 0 0 0 1
+footprint=SIP4N
+T 300 1550 5 10 0 0 0 0 1
+author=Cory Cross
+T 300 1750 5 10 0 0 0 0 1
+description=generic connector with Molex pin ordering
+T 300 1950 5 10 0 0 0 0 1
+numslots=0
+P 100 700 300 700 1 0 0
+{
+T 300 750 5 8 0 1 0 6 1
+pinnumber=1
+T 300 650 5 8 0 1 0 8 1
+pinseq=1
+T 350 700 9 8 1 1 0 0 1
+pinlabel=Output +
+T 450 700 5 8 0 1 0 2 1
+pintype=pas
+}
+P 100 300 300 300 1 0 0
+{
+T 300 350 5 8 0 1 0 6 1
+pinnumber=2
+T 300 250 5 8 0 1 0 8 1
+pinseq=2
+T 350 300 9 8 1 1 0 0 1
+pinlabel=Output -
+T 450 300 5 8 0 1 0 2 1
+pintype=pas
+}
+B 300 0 1300 1100 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
+P 1800 700 1600 700 1 0 0
+{
+T 1695 745 5 8 0 1 0 0 1
+pinnumber=3
+T 1600 650 5 8 0 1 0 2 1
+pinseq=3
+T 1545 695 9 8 1 1 0 6 1
+pinlabel=Input +
+T 1450 700 5 8 0 1 0 8 1
+pintype=pas
+}
+P 1800 300 1600 300 1 0 0
+{
+T 1695 345 5 8 0 1 0 0 1
+pinnumber=4
+T 1600 250 5 8 0 1 0 2 1
+pinseq=4
+T 1545 295 9 8 1 1 0 6 1
+pinlabel=Input -
+T 1450 300 5 8 0 1 0 8 1
+pintype=pas
+}
