@@ -23,6 +23,7 @@ This project is using:
  * Arduino Nano
  * ENC28J60 chip as Ethernet interface (see [Ethercard](https://github.com/ArnaudD-FR/EtherCard), some fix are not yet included in upstream)
  * SEN0208 weather proof, ultrasonic sensor
+ * 4 Channel DC 5V Relay Module with Optocoupler for Arduino
  * COAP protocol (no other purpose than testing COAP, sources are from [microcoap](https://github.com/1248/microcoap))
  * Jeedom as monitoring interface
  
