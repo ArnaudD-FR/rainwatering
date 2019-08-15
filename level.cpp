@@ -255,7 +255,7 @@ bool level_get_tank_ext(LevelTankExt &l)
     }
 
     const int measTrapezoidHeight = min(trapezoidHeight, H - meas);
-    const int measTrapezoidTop = trapezoidBottom + (measTrapezoidHeight / trapezoidHeight)*(trapezoidTop - trapezoidBottom);
+    const double measTrapezoidTop = trapezoidBottom + ((double)measTrapezoidHeight / trapezoidHeight)*(trapezoidTop - trapezoidBottom);
     measArea += (trapezoidBottom + (measTrapezoidTop - trapezoidBottom)/2) * measTrapezoidHeight;
 
     const double percent = 100*measArea/fullArea;
